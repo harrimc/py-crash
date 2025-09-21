@@ -6,3 +6,4 @@ Lesson 2 functions, needed to define teh arguements as integers before doing ari
 
 Lesson 3 data types, A variable defined in an if statement has a global scope 
 
+Lesson 4 conditional statements, 1. forgot to make an input an integer, 2. used wrong variable as the return value of a function
