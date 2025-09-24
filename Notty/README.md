@@ -23,6 +23,12 @@
 
 --- Python Basics ---
 
-## Day 6 Lesson 1 
+## Day 6 
+Lesson 1 
 - int function rounds down while round function roudns normally
 - if you define a variable in the body of an if statement, while it has a global scope if the if statement isnt called it isnt defined : needs to be set with a placeholder value beforehand.
+
+Lesson 2
+- Scar: didn’t know how defaults actually worked inside a function
+- Fix: defaults are assigned to parameters at definition; if no argument is passed, default is used; if argument is passed, it overrides
+- Rule: required first, defaults after (order of defaults changes positional behavior)
