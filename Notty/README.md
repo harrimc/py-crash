@@ -39,3 +39,7 @@ Lesson 3
 - Got tripped up on double negatives and making strings return true or false
 - Fix: convert input to boolean early (`onion = (ask == "yes")`), keep True = wants topping
 - Fix: dont design double negatives
+
+Lesson 4
+- len(list) is always one more than the value of list.index(final term) due to the index starting at 0
+- fix: instead of making both intergers, just use a negative index to find the final term.
