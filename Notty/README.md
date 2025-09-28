@@ -32,3 +32,10 @@ Lesson 2
 - Scar: didn’t know how defaults actually worked inside a function
 - Fix: defaults are assigned to parameters at definition; if no argument is passed, default is used; if argument is passed, it overrides
 - Rule: required first, defaults after (order of defaults changes positional behavior)
+
+
+## Day 7
+Lesson 3
+- Got tripped up on double negatives and making strings return true or false
+- Fix: convert input to boolean early (`onion = (ask == "yes")`), keep True = wants topping
+- Fix: dont design double negatives
