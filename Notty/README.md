@@ -43,3 +43,10 @@ Lesson 3
 Lesson 4
 - len(list) is always one more than the value of list.index(final term) due to the index starting at 0
 - fix: instead of making both intergers, just use a negative index to find the final term.
+
+## Day 8 
+Lesson 4
+- Scar: Returned False inside loop → stopped after first check; off-by-one confusion.
+- Fix: Only return True inside loop; put return False after loop. Use range(len(xs)-1).
+- Insight: range excludes end; len N → N-1 neighbor pairs.
+- Rule: Choose one pattern (index or zip); never mix, never early-return False in-loop.
