@@ -50,3 +50,18 @@ Lesson 4
 - Fix: Only return True inside loop; put return False after loop. Use range(len(xs)-1).
 - Insight: range excludes end; len N → N-1 neighbor pairs.
 - Rule: Choose one pattern (index or zip); never mix, never early-return False in-loop.
+
+## 9
+Scar: Misread .index() — whitespace counts as chars.
+Fix: .index() gives first char pos, spaces included.
+Insight: Machines count everything.
+
+Scar: Unsure on enumerate() use.
+Fix: Use for i, v in enumerate(xs) instead of range(len(xs)).
+Rule: Prefer readability over manual indexing.
+
+Scar: Confused .isdigit() vs int().
+Fix: .isdigit() checks, int() converts.
+Rule: Validate before converting.
+
+----- Numpy ------
