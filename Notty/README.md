@@ -65,3 +65,18 @@ Fix: .isdigit() checks, int() converts.
 Rule: Validate before converting.
 
 ----- Numpy ------
+ ## 10 array creation,
+Scar: Used np.array[[...]] instead of np.array([...]).
+Fix: () calls the function; [] defines data.
+Rule: () = call, [] = container.
+
+## 11 indexing 
+Scar: Expected arr[1] to behave like a string.
+Fix: It returns a numeric element, not text.
+Rule: Indexing extracts values, not strings.
+ 
+## 12 slicing
+Scar: Confused when results became 1-D vs 2-D.
+Fix: Integer index collapses; slice keeps the axis.
+Rule: Integers remove axes, slices preserve them.
+
