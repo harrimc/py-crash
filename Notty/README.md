@@ -80,3 +80,11 @@ Scar: Confused when results became 1-D vs 2-D.
 Fix: Integer index collapses; slice keeps the axis.
 Rule: Integers remove axes, slices preserve them.
 
+## 13 data types
+Scar: Unsure why U chosen instead of S.
+Fix: Python 3 uses Unicode by default.
+Rule: Always use U unless working with raw bytes (b'...').
+
+Scar: Confused why int32, float64, etc., appear without explanation.
+Fix: Learned suffix = bytes per element (32 bits = 4 bytes).
+Rule: int32 = 4-byte int; float64 = 8-byte float.
