@@ -88,3 +88,13 @@ Rule: Always use U unless working with raw bytes (b'...').
 Scar: Confused why int32, float64, etc., appear without explanation.
 Fix: Learned suffix = bytes per element (32 bits = 4 bytes).
 Rule: int32 = 4-byte int; float64 = 8-byte float.
+
+## 14 copy and view 
+Scar: Thought assigning a slice (v = arr[1:]) made a new array.
+Fix: Learned slicing returns a view—it shares the same memory.
+Rule: Slice → view, copy() → copy.
+
+## 15 shape and reshape 
+scar: Forgot parentheses when calling .copy, treated method as object.
+Fix: Added () to execute .copy() instead of referencing it.
+Rule: Always use parentheses when calling array methods like .copy(), .reshape(), .astype().
