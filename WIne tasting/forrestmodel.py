@@ -12,8 +12,14 @@ X = wineframe[desired]
 y = wineframe.quality
 train_X, val_X, train_y, val_y =train_test_split(X,y,random_state=2)
 
-Forrestmodel = RandomForestRegressor(random_state=2)
-Forrestmodel.fit(train_X,train_y)
-prediction = Forrestmodel.predict(val_X)
-mae = mean_absolute_error(prediction,val_y)
-print(mae)
+def get_forrest_mae(max_features,max_leaf_nodes,train_X, val_X, train_y, val_y) :
+    Forrestmodel = RandomForestRegressor(max_features=max_features,max_leaf_nodes= max_leaf_nodes,random_state=2)
+    Forrestmodel.fit(train_X,train_y)
+    prediction = Forrestmodel.predict(val_X)
+    mae = mean_absolute_error(val_y,prediction)
+    return mae
+
+for k in [20, 50, 100, 150, 200, 300]:
+    print(get_forrest_mae('sqrt',k,train_X,val_X,train_y,val_y))
+
+# best values at 'sqrt',300 - pretty good!

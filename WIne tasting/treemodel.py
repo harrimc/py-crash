@@ -17,12 +17,16 @@ X = wineframe[desired]
 y = wineframe.quality
 
 train_X, val_X, train_y, val_y =train_test_split(X,y,random_state=1)
-#print(train_X.head)
 
 
-wine_tree = DecisionTreeRegressor(random_state=1)
-wine_tree.fit(train_X,train_y)
-guess = wine_tree.predict(val_X)
+def get_tree_mae(max_leaf_nodes,train_X, val_X, train_y, val_y) :
+    wine_tree = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=1)
+    wine_tree.fit(train_X,train_y)
+    guess = wine_tree.predict(val_X)
+    actual = mean_absolute_error(val_y, guess)
+    return actual 
 
-actual = mean_absolute_error(guess, val_y)
-print(actual)
+print(get_tree_mae(34,train_X,val_X,train_y,val_y))
+
+
+
