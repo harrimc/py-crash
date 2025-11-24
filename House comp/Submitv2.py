@@ -23,15 +23,16 @@ y = housedata.SalePrice
 
 train_X,val_X,train_y,val_y = train_test_split(X,y,train_size = 0.86, test_size= 0.14,random_state = 1)
 
-def get_rmsle(max_features,max_leaf_nodes,train_X,val_x,train_y,val_y) :
-    houseforrest = RandomForestRegressor(max_features=max_features, max_leaf_nodes=max_leaf_nodes,random_state=1)
-    houseforrest.fit(train_X,train_y)
-    predict = houseforrest.predict(val_X)
-    rmsle = root_mean_squared_log_error(val_y,predict)
-    return rmsle
+final_model = RandomForestRegressor(max_features=7, max_leaf_nodes=540,random_state=1)
+final_model.fit(X,y)
 
+test_path = 'test.csv'
+test_data = pd.read_csv(test_path)
 
-for k in [540] :
-    print(get_rmsle(7,k,train_X,val_X,train_y,val_y))
+val_X = test_data[cols]
 
+test_preds = final_model.predict(val_X)
 
+susbmission = pd.DataFrame({'Id' : test_data['Id'], 'SalePrice' : test_preds})
+
+susbmission.to_csv('CREATE CSV',index = False)
