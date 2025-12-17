@@ -14,6 +14,14 @@ from sklearn.metrics import root_mean_squared_log_error
 house_path = 'train.csv'
 hous_fulldata = pd.read_csv(house_path) 
 
+hous_fulldata['TotalSF'] = hous_fulldata['1stFlrSF'] + hous_fulldata['2ndFlrSF'] + hous_fulldata['TotalBsmtSF'] 
+
+hous_fulldata['houseage'] = hous_fulldata['YrSold'] - hous_fulldata['YearBuilt']
+hous_fulldata['houseage'] = hous_fulldata['houseage'].clip(lower=0)
+
+hous_fulldata['remod_age'] = hous_fulldata['YrSold']  -  hous_fulldata['YearRemodAdd']
+hous_fulldata['remod_age'] = hous_fulldata['remod_age'].clip(lower=0)
+
 
 num_col = ((hous_fulldata.dtypes == 'int64') | ( hous_fulldata.dtypes == 'float64'))
 ls_num_col = list(num_col[num_col].index)
@@ -40,9 +48,8 @@ preprocessor = ColumnTransformer(transformers=[('num', numerical_transformer, cl
 
 model = XGBRegressor(n_estimators = 900, learning_rate = 0.05, max_depth = 3)
 
-my_model = Pipeline(steps=[('preprocessor', 
-                            preprocessor),('model',model)])
-
+my_model = Pipeline(steps=[('preprocessor', preprocessor),
+                           ('model',model)])
 cV = KFold(n_splits = 5, shuffle= True, random_state = 1)
 
 score = -1 * cross_val_score(my_model,X,y, cv = cV, scoring = 'neg_root_mean_squared_log_error')
@@ -54,6 +61,15 @@ my_model.fit(X,y)
 
 test_path = 'test.csv'
 test_pd = pd.read_csv(test_path)
+
+test_pd['TotalSF'] = test_pd['1stFlrSF'] + test_pd['2ndFlrSF'] + test_pd['TotalBsmtSF'] 
+
+test_pd['houseage'] = test_pd['YrSold'] - test_pd['YearBuilt']
+test_pd['houseage'] = test_pd['houseage'].clip(lower=0)
+
+test_pd['remod_age'] = test_pd['YrSold']  -  test_pd['YearRemodAdd']
+test_pd['remod_age'] = test_pd['remod_age'].clip(lower=0)
+
 X_val = test_pd[combined_cols]
 preds = my_model.predict(X_val)
 submission = pd.DataFrame({'Id': test_pd['Id'], 'SalePrice' : preds})
