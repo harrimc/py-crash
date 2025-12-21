@@ -10,6 +10,7 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 import numpy as np 
 from sklearn.metrics import roc_auc_score
 from sklearn.base import clone
+import optuna 
 
 ins_path = 'train.csv'
 ins_full_df = pd.read_csv(ins_path)
@@ -37,11 +38,11 @@ y = ins_full_df.loan_status
 preprocessor = ColumnTransformer(transformers=[('num', num_transformer, num_final), 
                                                ( 'cat', cat_transformer, cat_list)])
 
-model = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =1, gamma =0.6924731534865837)
-model1 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =0, gamma =0.6924731534865837)
-model2 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =2, gamma =0.6924731534865837)
-model3 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =3, gamma =0.6924731534865837)
-model4 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =5, gamma =0.6924731534865837)
+model = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =1, gamma = 0.029)
+model1 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =0, gamma = 0.029)
+model2 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =2,gamma = 0.029)
+model3 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =3,gamma = 0.029)
+model4 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =5,gamma = 0.029)
 
 full_mod = Pipeline(steps=[('preprocessor', preprocessor),
                            ('model',model)])
@@ -56,13 +57,11 @@ full_mod4 = Pipeline(steps=[('preprocessor', preprocessor),
 
 cV = StratifiedKFold(n_splits =5, shuffle = True,random_state=1)
 
-scores = cross_val_score(full_mod,X,y,cv =cV,scoring = 'roc_auc')
+'''scores = cross_val_score(full_mod,X,y,cv =cV,scoring = 'roc_auc')
 
 print(scores.mean())
 
 print(scores.std())
-
-
 
 
 diff_mod = [full_mod,full_mod1,full_mod2,full_mod3,full_mod4]
@@ -108,9 +107,9 @@ full_mod4.fit(X,y)
 
 
 
-'''mean , std = testing(full_mod,X,y,cV)
+mean , std = testing(full_mod,X,y,cV)
 testing_df = pd.DataFrame({'no of k' : [0.55,0.6,0.65,0.7,0.75], 'mean' : mean, 'standard deviation' : std})
-print(testing_df)'''
+print(testing_df)
 
 
 
@@ -129,5 +128,39 @@ p_avg = (preds + preds1 + preds2 + preds3 + preds4)/5
 
 submission = pd.DataFrame({'id' : test_df['id'], 'loan_status' : p_avg})
 
-submission.to_csv('submitXG01.5.csv', index = False)
+submission.to_csv('submitXG01.4.csv', index = False) '''
 
+def objective(trial) : 
+    parameters = {'learning_rate' : trial.suggest_float('learning_rate',0.01,0.5),
+                  'n_estimators' : trial.suggest_int('n_estimators',400,1000),
+                  'max_depth' : trial.suggest_int('max_depth',2,9),
+                  'subsample' : trial.suggest_float('subsample',0.4,1),
+                  'colsample_bytree' : trial.suggest_float('colsample_bytree',0.5,1),
+                  'min_child_weight' : trial.suggest_int('min_child_weight',1,10),
+                  'gamma' : trial.suggest_float('gamma',0,3)}
+    score_op = []
+    for fold, (train_idx, val_idx) in enumerate(cV.split(X,y)) :
+        X_train, Val_X = X.iloc[train_idx], X.iloc[val_idx]
+        y_train, Val_y = y.iloc[train_idx], y.iloc[val_idx]
+        for k in [0,1,2,3,4,5,6,7,8,9,10] :
+            model_op = XGBClassifier(**parameters, random_state =k)
+            full_mod_op = Pipeline(steps=[('preprocessor',preprocessor), 
+                                  ('model', model_op) ])
+            full_mod_op.fit(X_train,y_train)
+            score_preds = full_mod_op.predict_proba(Val_X)[:, 1]
+            score_op.append(roc_auc_score(Val_y, score_preds))
+
+            running_mean = np.mean(score_op)
+            trial.report(running_mean, step=fold)
+
+            if trial.should_prune():
+                raise optuna.TrialPruned()# this has hella errors atm 
+    return float(np.mean(score_op))
+
+study = optuna.create_study(study_name = 'optuna_test_4.0', storage="sqlite:///optuna.db", direction='maximize',load_if_exists= True)
+study.optimize(objective, n_trials=1000,show_progress_bar= True, n_jobs = -1)
+
+best_params = study.best_params
+print(best_params)
+
+## sqlite:///optuna.db for web page 
