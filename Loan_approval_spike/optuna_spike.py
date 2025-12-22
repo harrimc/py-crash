@@ -21,8 +21,8 @@ num_drop = ['id','loan_status']
 num_final = [k for k in num_list if k not in num_drop]
 
 cat_cols = ins_full_df.dtypes == 'object'
-cat_make = list(cat_cols[cat_cols].index)
-cat_list = [i for i in cat_make if i != 'loan_status']
+cat_list = list(cat_cols[cat_cols].index)
+
 
 num_transformer = SimpleImputer(strategy='mean')
 
@@ -38,11 +38,12 @@ y = ins_full_df.loan_status
 preprocessor = ColumnTransformer(transformers=[('num', num_transformer, num_final), 
                                                ( 'cat', cat_transformer, cat_list)])
 
-model = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =1, gamma = 0.029)
-model1 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =0, gamma = 0.029)
-model2 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =2,gamma = 0.029)
-model3 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =3,gamma = 0.029)
-model4 = XGBClassifier(learning_rate = 0.05, n_estimators =700,max_depth = 5,subsample=0.95, colsample_bytree=0.5,min_child_weight = 3,random_state =5,gamma = 0.029)
+xgb_params = {'learning_rate'  : 0.05, 'n_estimators'  : 700, 'max_depth' : 5,'subsample' : 0.95, 'colsample_bytree' : 0.5, 'min_child_weight' : 3, 'gamma' : 0.029}
+model = XGBClassifier(**xgb_params, random_state = 0)
+model1 = XGBClassifier(**xgb_params, random_state = 1)
+model2 = XGBClassifier(**xgb_params, random_state =2)
+model3 = XGBClassifier(**xgb_params, random_state = 3)
+model4 = XGBClassifier(**xgb_params, random_state = 4)
 
 full_mod = Pipeline(steps=[('preprocessor', preprocessor),
                            ('model',model)])
@@ -131,36 +132,44 @@ submission = pd.DataFrame({'id' : test_df['id'], 'loan_status' : p_avg})
 submission.to_csv('submitXG01.4.csv', index = False) '''
 
 def objective(trial) : 
-    parameters = {'learning_rate' : trial.suggest_float('learning_rate',0.01,0.5),
-                  'n_estimators' : trial.suggest_int('n_estimators',400,1000),
-                  'max_depth' : trial.suggest_int('max_depth',2,9),
-                  'subsample' : trial.suggest_float('subsample',0.4,1),
-                  'colsample_bytree' : trial.suggest_float('colsample_bytree',0.5,1),
-                  'min_child_weight' : trial.suggest_int('min_child_weight',1,10),
-                  'gamma' : trial.suggest_float('gamma',0,3)}
+    parameters = {'learning_rate' : trial.suggest_float('learning_rate',0.005,0.3),
+                  'n_estimators' : trial.suggest_int('n_estimators',500,2000),
+                  'max_depth' : trial.suggest_int('max_depth',2,6),
+                  'subsample' : trial.suggest_float('subsample',0.6,1),
+                  'colsample_bytree' : trial.suggest_float('colsample_bytree',0.3,0.8),
+                  'min_child_weight' : trial.suggest_int('min_child_weight',3,9),
+                  'gamma' : trial.suggest_float('gamma',0,3),
+                  'reg_alpha' : trial.suggest_float('reg_alpha',0,10.0),
+                  'reg_lambda' : trial.suggest_float('reg_lambda',1.0,10.0)}
+                  
     score_op = []
+    model_op = XGBClassifier(**parameters, random_state =42, n_jobs = -1)
     for fold, (train_idx, val_idx) in enumerate(cV.split(X,y)) :
         X_train, Val_X = X.iloc[train_idx], X.iloc[val_idx]
         y_train, Val_y = y.iloc[train_idx], y.iloc[val_idx]
-        for k in [0,1,2,3,4,5,6,7,8,9,10] :
-            model_op = XGBClassifier(**parameters, random_state =k)
-            full_mod_op = Pipeline(steps=[('preprocessor',preprocessor), 
+        
+        full_mod_op = Pipeline(steps=[('preprocessor',preprocessor), 
                                   ('model', model_op) ])
-            full_mod_op.fit(X_train,y_train)
-            score_preds = full_mod_op.predict_proba(Val_X)[:, 1]
-            score_op.append(roc_auc_score(Val_y, score_preds))
+        full_mod_op.fit(X_train,y_train)
+        score_preds = full_mod_op.predict_proba(Val_X)[:, 1]
+        score_op.append(roc_auc_score(Val_y, score_preds))
 
-            running_mean = np.mean(score_op)
-            trial.report(running_mean, step=fold)
+        running_mean = np.mean(score_op)
+        trial.report(running_mean, step=fold)
 
-            if trial.should_prune():
-                raise optuna.TrialPruned()# this has hella errors atm 
+        if trial.should_prune():
+            raise optuna.TrialPruned()
     return float(np.mean(score_op))
 
-study = optuna.create_study(study_name = 'optuna_test_4.0', storage="sqlite:///optuna.db", direction='maximize',load_if_exists= True)
-study.optimize(objective, n_trials=1000,show_progress_bar= True, n_jobs = -1)
+study = optuna.create_study(study_name = 'optuna_test_11.0', storage="sqlite:///optuna.db", direction='maximize',load_if_exists= True)
+study.optimize(objective, n_trials=500,show_progress_bar= True, n_jobs = 1)
 
 best_params = study.best_params
 print(best_params)
 
+
+
+
 ## sqlite:///optuna.db for web page 
+
+

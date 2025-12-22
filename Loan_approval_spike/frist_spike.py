@@ -37,12 +37,14 @@ y = ins_full_df.loan_status
 preprocessor = ColumnTransformer(transformers=[('num', num_transformer, num_final), 
                                                ( 'cat', cat_transformer, cat_list)])
 
-model = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =1, gamma =0.6924731534865837)
-model1 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =0, gamma =0.6924731534865837)
-model2 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =2, gamma =0.6924731534865837)
-model3 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =3, gamma =0.6924731534865837)
-model4 = XGBClassifier(learning_rate = 0.04426862450389839, n_estimators =895,max_depth = 6,subsample=0.929531815724883, colsample_bytree=0.5403156443872784,min_child_weight = 7,random_state =5, gamma =0.6924731534865837)
+#defining models with different seeds
+xgb_params = {'learning_rate': 0.05273962639346117, 'n_estimators': 1023, 'max_depth': 5, 'subsample': 0.9526675220484603, 'colsample_bytree': 0.3764192320141283, 'min_child_weight': 5, 'gamma': 0.3534125504141658}
+model1 = XGBClassifier(**xgb_params, random_state = 1)
+model2 = XGBClassifier(**xgb_params, random_state =2)
+model3 = XGBClassifier(**xgb_params, random_state = 3)
+model4 = XGBClassifier(**xgb_params, random_state = 4)
 
+# full pipeline for each model
 full_mod = Pipeline(steps=[('preprocessor', preprocessor),
                            ('model',model)])
 full_mod1 = Pipeline(steps=[('preprocessor', preprocessor),
@@ -129,5 +131,5 @@ p_avg = (preds + preds1 + preds2 + preds3 + preds4)/5
 
 submission = pd.DataFrame({'id' : test_df['id'], 'loan_status' : p_avg})
 
-submission.to_csv('submitXG01.5.csv', index = False)
+submission.to_csv('submitXG01.8.csv', index = False)
 
