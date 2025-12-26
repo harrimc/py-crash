@@ -161,8 +161,8 @@ def objective(trial) :
             raise optuna.TrialPruned()
     return float(np.mean(score_op))
 
-study = optuna.create_study(study_name = 'optuna_test_11.0', storage="sqlite:///optuna.db", direction='maximize',load_if_exists= True)
-study.optimize(objective, n_trials=500,show_progress_bar= True, n_jobs = 1)
+study = optuna.create_study(study_name = 'optuna_test_12.0', storage="sqlite:///optuna.db", direction='maximize',load_if_exists= True)
+study.optimize(objective, n_trials=1,show_progress_bar= True, n_jobs = 1)
 
 best_params = study.best_params
 print(best_params)
@@ -170,6 +170,6 @@ print(best_params)
 
 
 
-## sqlite:///optuna.db for web page 
+## optuna-dashboard sqlite:///optuna.db --port 8080 for web page 
 
 
