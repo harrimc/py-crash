@@ -11,6 +11,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score
 from sklearn.base import clone
 
+
 ins_path = 'train.csv'
 ins_full_df = pd.read_csv(ins_path)
 
@@ -38,7 +39,8 @@ preprocessor = ColumnTransformer(transformers=[('num', num_transformer, num_fina
                                                ( 'cat', cat_transformer, cat_list)])
 
 #defining models with different seeds
-xgb_params = {'learning_rate': 0.05273962639346117, 'n_estimators': 1023, 'max_depth': 5, 'subsample': 0.9526675220484603, 'colsample_bytree': 0.3764192320141283, 'min_child_weight': 5, 'gamma': 0.3534125504141658}
+xgb_params = {'learning_rate': 0.034437561078606294, 'n_estimators': 1379, 'max_depth': 5, 'subsample': 0.939633605230379, 'colsample_bytree': 0.5379887024016051, 'min_child_weight': 4, 'gamma': 0.41725949046109445, 'reg_alpha': 0.8870451366409303, 'reg_lambda': 1.2125409014625224}
+model = XGBClassifier(**xgb_params, random_state = 0)
 model1 = XGBClassifier(**xgb_params, random_state = 1)
 model2 = XGBClassifier(**xgb_params, random_state =2)
 model3 = XGBClassifier(**xgb_params, random_state = 3)
@@ -69,6 +71,7 @@ print(scores.std())
 
 diff_mod = [full_mod,full_mod1,full_mod2,full_mod3,full_mod4]
 n = len(X)
+fold_sc = []
 oof_pred = np.zeros(n, dtype=float)  # enmpty array so can be fillef with probabilities
 for train_idx, val_idx in cV.split(X, y):       ## loops five times as n_splits =5 , each time creaing differnt lists of training and val index's which constiute 5 folds
     X_train =  X.iloc[train_idx]
@@ -86,16 +89,21 @@ for train_idx, val_idx in cV.split(X, y):       ## loops five times as n_splits 
         sum_preds = sum_preds + val_preds
     
     oof_pred[val_idx]  = (sum_preds/5) 
+    val_score = roc_auc_score(y_val,sum_preds/5)
+    fold_sc.append(val_score)
+
+    
+
 
 print(oof_pred)
-
+print(np.std(fold_sc))
 print(roc_auc_score(y, oof_pred))
 
 
 def testing(pipeline,X,y,cl) : 
     mena= []
     sdt = []
-    for k in [0.55,0.6,0.65,0.7,0.75] :
+    for k in [0.939633605230379] :
         full_modtest_k = pipeline.set_params(model__subsample = k)
         score = cross_val_score(full_modtest_k,X,y,cv= cl,scoring= 'roc_auc')
         mena.append(score.mean())
@@ -110,9 +118,9 @@ full_mod4.fit(X,y)
 
 
 
-'''mean , std = testing(full_mod,X,y,cV)
-testing_df = pd.DataFrame({'no of k' : [0.55,0.6,0.65,0.7,0.75], 'mean' : mean, 'standard deviation' : std})
-print(testing_df)'''
+mean , std = testing(full_mod,X,y,cV)
+testing_df = pd.DataFrame({'no of k' : [0.939633605230379], 'mean' : mean, 'standard deviation' : std})
+print(testing_df)
 
 
 
@@ -131,5 +139,10 @@ p_avg = (preds + preds1 + preds2 + preds3 + preds4)/5
 
 submission = pd.DataFrame({'id' : test_df['id'], 'loan_status' : p_avg})
 
-submission.to_csv('submitXG01.8.csv', index = False)
+submission.to_csv('submitXG01.11.csv', index = False)
+
+submission2 = pd.DataFrame({'id' : test_df['id'], 'loan_status' : preds})
+submission2.to_csv('submitXG01.12.csv', index = False)
+
+
 
